@@ -37,7 +37,7 @@ legend = {'facecolor': 'black', 'framealpha': 0.6}
 # mpl.rc('legend', **legend1)
 # mpl.rc('legend', **legend)
 
-
+mpl.rcParams['figure.facecolor'] = '#232323'
 mpl.rc('legend', **legend)
 mpl.rc('text', **text)
 mpl.rc('xtick', **xtick)
