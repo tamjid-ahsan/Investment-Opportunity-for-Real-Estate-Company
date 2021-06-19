@@ -1,4 +1,5 @@
 # imports
+from sklearn.metrics import r2_score
 from pmdarima.arima.utils import ndiffs
 from pmdarima.arima.utils import nsdiffs
 import folium
@@ -12,37 +13,111 @@ import numpy as np
 import pmdarima as pm
 import warnings
 import json
+from statsmodels.tools.eval_measures import rmse, mse
+from sklearn.metrics import mean_absolute_error as mae
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 warnings.simplefilter('ignore', UserWarning)
 warnings.simplefilter('ignore', ConvergenceWarning)
+
 
 # functions
 
 
 def forecast_to_df(forecast, zipcode):
+    """
+    Creates dataframe from statsmodels.tsa model obeject forecast
+
+    ### Helper function ###
+
+    Parameters:
+    ===========
+    forecast = output from model forecast;
+    zipcode = str; zipcode name,
+    """
     test_pred = forecast.conf_int()
     test_pred[zipcode] = forecast.predicted_mean
     test_pred.columns = ['lower', 'upper', 'prediction']
     return test_pred
 
 
-def plot_test_pred(test, pred_df, figsize=(15, 5)):
+def model_error_report(test, pred_df, show_report=False):
+    """
+    Generates model reports; rmse, mse, mae
+
+    ### Helper function ###
+
+    Parameters:
+    ===========
+    test = array like; no default; test y,
+    pred_df = predicted y with confidance interval.
+    """
+    rmse_ = rmse(pred_df['prediction'], test)
+    mse_ = mse(pred_df['prediction'], test)
+    mae_ = mae(test, pred_df['prediction'])
+    if show_report:
+        print(f'Root Mean Squared Error of test and prediction: {rmse_}')
+        print(f'Mean Squared Error: {mse_}')
+        print(f'Mean Absolute Error: {mae_}')
+    return rmse_, mse_, mae_
+
+
+def plot_test_pred(test, pred_df, figsize=(15, 5), conf_int=True):
+    """
+    plots test and prediction
+
+    ### Helper function ###
+
+    returns matplotlib fig and ax object.
+
+    Parameters:
+    ===========
+    test = array like; no default; test y,
+    pred_df = predicted y with confidance interval.
+    figsize = tuple of int or float; deafult = (15, 5), figure size control,
+    conf_int = bool; default = True, plots confidance interval
+    """
     fig, ax = plt.subplots(figsize=figsize)
     ax.plot(test, label='Test', marker='o', color='#ff6961', lw=4)
     ax.plot(pred_df['prediction'], label='prediction',
             ls='--', marker='o', color='#639388', lw=4)
-    ax.fill_between(
-        x=pred_df.index, y1=pred_df['lower'], y2=pred_df['upper'], color='#938863', alpha=.5)
+    if conf_int:
+        ax.fill_between(
+            x=pred_df.index, y1=pred_df['lower'], y2=pred_df['upper'], color='#938863', alpha=.5)
     ax.legend()
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left")
     fig.tight_layout()
+    rmse_, mse_, mae_ = model_error_report(test, pred_df, show_report=True)
+
     return fig, ax
 
 
-def plot_train_test_pred(train, test, pred_df, figsize=(15, 5)):
+def plot_train_test_pred(train, test, pred_df, figsize=(15, 5), color_by_train_test=True):
+    """
+    plots test and prediction
+
+    ### Helper function ###
+
+    Parameters:
+    ===========
+    train = array like; no default; train y,
+    test = array like; no default; test y,
+    pred_df = pandas.DataFrame; no default; predicted y with confidance interval,
+    figsize = tuple of int or float; deafult = (15, 5), figure size control,
+    color_by_train_test = bool; default = True, seperates train and test data by color.
+
+    returns matplotlib fig and ax object.
+    """
     fig, ax = plt.subplots(figsize=figsize)
-    ax.plot(train, label='Train', marker='o', color='#886393')
-    ax.plot(test, label='Test', marker='o', color='#ff6961')
+    # diffrentiate train test split by color
+    if color_by_train_test:
+        color_list = ['#886393', '#ff6961']
+    else:
+        color_list = ['#886393', '#886393']
+    # train
+    ax.plot(train, label='Train', marker='o', color=color_list[0])
+    # test
+    ax.plot(test, label='Test', marker='o', color=color_list[1])
+    # prediction
     ax.plot(pred_df['prediction'], label='prediction',
             ls='--', marker='o', color='#639388')
     ax.fill_between(
@@ -53,13 +128,33 @@ def plot_train_test_pred(train, test, pred_df, figsize=(15, 5)):
     return fig, ax
 
 
-def plot_train_test_pred_forecast(train, test, pred_df_test, pred_df, zipcode, figsize=(15, 5)):
+def plot_train_test_pred_forecast(train, test, pred_df_test, pred_df, zipcode, figsize=(15, 5), color_by_train_test=True):
+    """
+    plots test and prediction
+
+    ### Helper function ###
+
+    Parameters:
+    ===========
+    train = array like; no default; train y,
+    test = array like; no default; test y,
+    pred_df_test = array like; no default; predicted y on train y with confidance interval,
+    pred_df = array like; no default; predicted y on all data with confidance interval,
+    figsize = tuple of int or float; deafult = (15, 5), figure size control,
+    color_by_train_test = bool; default = True, seperates train and test data by color.
+
+    returns matplotlib fig and ax object. and roi information as pandas.DataFrame object
+    """
     fig, ax = plt.subplots(figsize=figsize)
     kws = dict(marker='*')
+    if color_by_train_test:
+        color_list = ['#886393', '#ff6961']
+    else:
+        color_list = ['#886393', '#886393']
     # train
-    ax.plot(train, label='Train', **kws, color='#886393')
+    ax.plot(train, label='Train', **kws, color=color_list[0])
     # test
-    ax.plot(test, label='Test', **kws, color='#ff6961')
+    ax.plot(test, label='Test', **kws, color=color_list[1])
     # prediction
     ax.plot(pred_df_test['prediction'],
             label='prediction',
@@ -102,7 +197,15 @@ def plot_train_test_pred_forecast(train, test, pred_df_test, pred_df, zipcode, f
 
 def plot_acf_pacf(ts, figsize=(15, 8), lags=24):
     """
-    Plots acf and pacf
+    Plots acf and pacf of a time series
+
+    Parameters:
+    ===========
+    ts = array like; no default; time series data, 
+    figsize = tuple of int or float; deafult = (15, 8), figure size control,
+    lags = int; default = 24, lag input of plot_acf() of statsmodels.tsa
+
+    returns matplotlib fig and ax object.
     """
     fig, ax = plt.subplots(nrows=3, figsize=figsize)
     # Plot ts
@@ -121,10 +224,19 @@ def plot_acf_pacf(ts, figsize=(15, 8), lags=24):
 
 
 def adfuller_test_df(ts, index=['AD Fuller Results']):
-    """Returns the AD Fuller Test Results and p-values for the null hypothesis
-    that there the data is non-stationary (that there is a unit root in the data)
-
+    """
     Adapted from https://github.com/learn-co-curriculum/dsc-removing-trends-lab/tree/solution
+    Returns the AD Fuller Test Results and p-values for the null hypothesis that there the data is non-stationary (that there is a unit root in the data).
+
+    ### helper function ###
+
+    Parameters:
+    ===========
+    ts = array like; no default; time series data, 
+
+    Returns:
+    ========
+    report of the test as pandas.DataFrame object.
     """
 
     df_res = tsa.stattools.adfuller(ts)
@@ -146,8 +258,22 @@ def adfuller_test_df(ts, index=['AD Fuller Results']):
 
 
 def stationarity_check(TS, window=8, plot=True, figsize=(15, 5), index=['ADF Result']):
-    """Adapted from https://github.com/learn-co-curriculum/dsc-removing-trends-lab/tree/solution"""
+    """
+    Adapted from https://github.com/learn-co-curriculum/dsc-removing-trends-lab/tree/solution
+    Checks stationarity of the time series.
 
+    Parameters:
+    ===========
+    TS = array like; no default; time series data, , 
+    window = int; default = 8, rolling window input.
+    plot = bool; default = True, displays plot
+    figsize = tuple of int or float; deafult = (15, 5), figure size control,
+    index= list containing str; default = ['ADF Result']. dataframe index input.
+
+    Returns:
+    ========
+    report of the test as pandas.DataFrame object.
+    """
     # Calculate rolling statistics
     roll_mean = TS.rolling(window=window, center=False).mean()
     roll_std = TS.rolling(window=window, center=False).std()
@@ -180,21 +306,14 @@ def stationarity_check(TS, window=8, plot=True, figsize=(15, 5), index=['ADF Res
     return dftest
 
 
-# def return_on_investment(df, start_date, end_date):
-#     """
-#     The logarithmic return or continuously compounded return, also known as force of interest.
-
-#     Parameters:
-#     ===========
-#     df = pandas.DataFrame; No default.
-#     start_date = str, date in year-month format; No default.
-#     end_date = str, date in year-month format; No default.
-
-#     """
-#     return np.log(df[end_date] / df[start_date])
-
-
 def melt_data(df):
+    """
+    Converts dataframe from wide form to long form.
+    ### pre-defined function ###
+    Returns:
+    ========
+    panda.DataFrame
+    """
     melted = pd.melt(df,
                      id_vars=['RegionName', 'State',
                               'City', 'Metro', 'CountyName'],
@@ -205,6 +324,26 @@ def melt_data(df):
 
 
 def model_builder(train, test, order, seasonal_order, zipcode, figsize=(15, 8), show_summary=True, show_diagnostics=True, show_prediction=True):
+    """
+    builds a model with statsmodels.tsa.SARIMAX and prints information.
+
+    Parameters:
+    ===========
+    train = array like; no default; train y, 
+    test = array like; no default; test y, 
+    order = tuple of three int; no default, p, d, q of SARIMAX model,
+    seasonal_order = tuple of four int; no default, P, D, Q, m of SARIMAX model,
+    zipcode = str; zipcode name, 
+    figsize = tuple of int or float; deafult = (15, 8), figure size control, 
+    show_summary = bool; default = True, show SARIMAX summary, 
+    show_diagnostics = bool; default = True, show model diagonistics reports, 
+    show_prediction = bool; default = True, show prediction,
+
+    Returns:
+    ========
+    SARIMAX model object,
+    prediction of the model for steps of length of test.
+    """
     # model
     model = tsa.SARIMAX(train, order=order,
                         seasonal_order=seasonal_order).fit()
@@ -234,7 +373,54 @@ def model_builder(train, test, order, seasonal_order, zipcode, figsize=(15, 8), 
 
 
 def grid_search(ts, train, test, forecast_steps=36, figsize=(15, 5), trace=True, display_results=True, display_roi_results=True):
-    """# grid searching using pyramid arima"""
+    """
+    grid searching using pyramid arima for best p, d, q, P, D, Q, m for 
+    a SARIMA model using predefined conditions and shows model performance
+     for perdicting in the future.
+
+    ### predefined options ###
+    # d and D is calculated using ndiffs using 'adf'(Augmented Dickey–Fuller test for Unit Roots)
+     for d and 'ocsb' (Osborn, Chui, Smith, and Birchenhall Test for Seasonal Unit Roots) for D.
+    # parameters for auto_arima model:
+    start_p=0; The starting value of p, the order (or number of time lags) of the auto-regressive (“AR”) model.
+    d=d; The order of first-differencing,
+    start_q=0; order of the moving-average (“MA”) model,
+    max_p=3, max value for p
+    max_q=3, max value for q
+    start_P=0; the order of the auto-regressive portion of the seasonal model,
+    D=D; The order of the seasonal differencing,
+    start_Q=0; the order of the moving-average portion of the seasonal model,
+    max_P=3, max value of P
+    max_Q=3, max value for Q
+    m=12; The period for seasonal differencing, 
+                refers to the number of periods in each season.,
+    seasonal=True; this data is seasonal,
+    stationary=False; data is not stationary,
+    information_criterion='oob', optimizing on `out-of-bag` sample validation on a scoring metric, 
+                other information criterias did not perform well
+    out_of_sample_size=12, step hold out for validation,
+    scoring='mse', validation metric,
+    method='lbfgs'; limited-memory Broyden-Fletcher-Goldfarb-Shanno with optional box constraints, 
+                BFGS is  in the family of quasi-Newton-Raphson methods that 
+                approximates the `bfgs` using a limited amount of computer memory.
+
+    Parameters:
+    ===========
+    ts = array like; no default; time series y, 
+    train = array like; no default; train y, 
+    test = array like; no default; test y, 
+    forecast_steps = int; default = 36, steps to forecast into future. 
+    figsize = tuple of int or float; deafult = (15, 8), figure size control, 
+    trace = bool; default = True, 
+    display_results = bool; default = True, 
+    display_roi_results = bool; default = True,
+
+    Returns:
+    ========
+    auto_model model object created by pmdautoarima, 
+    predictions of test, 
+    forecast of ts for selected steps.
+    """
 
     d = ndiffs(train, alpha=0.05, test='adf', max_d=4)
     D = nsdiffs(train, m=12, test='ocsb', max_D=4)
@@ -245,22 +431,16 @@ def grid_search(ts, train, test, forecast_steps=36, figsize=(15, 5), trace=True,
                                d=d,
                                start_q=0,
                                max_p=3,
-                               #    max_d=d+1,
                                max_q=3,
                                start_P=0,
                                D=D,
                                start_Q=0,
                                max_P=3,
-                               #    max_D=D+1,
                                max_Q=3,
-                               #    max_order=None,
                                m=12,
                                seasonal=True,
                                stationary=False,
-                               information_criterion='oob',  # 'oob','aicc', 'bic', 'hqic',
-                               #    alpha=0.05,
-                               #    test='dft',
-                               #    seasonal_test='ocsb',  # 'ch'
+                               information_criterion='oob',
                                stepwise=True,
                                suppress_warnings=True,
                                error_action='warn',
@@ -326,6 +506,24 @@ def model_loop(ts_df,
                train_size=.8, show_grid_search_steps=True,
                forecast_steps=36, figsize=(15, 5),
                display_details=False):
+    """
+    Loops through provided zipcodes as list with grid_search function and 
+    stores output using provided train test split.
+
+    Parameters:
+    ===========
+    ts_df = pandas.DataFrame, all zipcode inforamation
+    zipcode_list = list, zipcodes to loop
+    train_size=.8, 
+    show_grid_search_steps = bool; default = True, display gid search steps,
+    display_details = bool; default = False, show forecast breakdown.
+    forecast_steps = int; default = 36, steps to forecast into future. 
+    figsize = tuple of int or float; deafult = (15, 8), figure size control,
+
+    Returns: 
+    ========
+    Result dict, and ROI dataframe
+    """
     # store results
     RESULTS = {}
     # store ROI information
@@ -333,8 +531,6 @@ def model_loop(ts_df,
         'zipcode', 'mean_forecasted_roi', 'lower_forecasted_roi',
         'upper_forecasted_roi', 'std_forecasted_roi'
     ])
-    # # store param information
-    # PARAMS = {}
 
     # loop counter
     n = 0
@@ -375,7 +571,7 @@ def model_loop(ts_df,
                                                    display_roi_results=display_roi_results_gs)
 
         # storing data in RESULTS
-        temp_dict['model'] = model # .to_dict() can be used to save space
+        temp_dict['model'] = model
         temp_dict['train'] = train
         temp_dict['test'] = test
         temp_dict['pred_df_test'] = pred_df_test
@@ -403,8 +599,9 @@ def model_loop(ts_df,
 
 
 def zip_code_map(roi_df):
-    """Return an interactive map of zip codes colorized to reflect
-    expected return on investment.
+    """
+    Returns an interactive map of zip codes colorized to reflect
+    expected return on investment using folium.
     """
     geojason = json.load(
         open('./data/ny_new_york_zip_codes_geo.min.json', 'r'))
@@ -424,7 +621,22 @@ def zip_code_map(roi_df):
 
 
 def map_zipcodes_return(df, plot_style='interactive', geojson_file_path='./data/ny_new_york_zip_codes_geo.min.json'):
-    """ """
+    """
+    Returns an map of zip codes colorized to reflect
+    expected return on investment using plotly express. 
+    ### pre-defined function ###
+
+    Parameters:
+    ===========
+    df = pandas.DataFrame; no default, return on investment dataframe, 
+    plot_style = str; default = 'interactive', 
+                available options:
+                -  'interactive'
+                - 'static'
+                - 'dash'
+    geojson_file_path = geojson; default = './data/ny_new_york_zip_codes_geo.min.json',
+                    file path of geojson file.
+    """
     import plotly.express as px
     geojason = json.load(open(geojson_file_path, 'r'))
     for feature in geojason['features']:
@@ -434,8 +646,9 @@ def map_zipcodes_return(df, plot_style='interactive', geojson_file_path='./data/
                                locations='zipcode',
                                color='mean_forecasted_roi',
                                mapbox_style="stamen-terrain",
-                               zoom=10.5,color_continuous_scale=['#FF3D70', '#FFE3E8', '#039E0F'],#range_color=[-20,20],
-                               color_continuous_midpoint= 0, hover_name='Neighborhood',
+                               # range_color=[-20,20],
+                               zoom=10.5, color_continuous_scale=['#FF3D70', '#FFE3E8', '#039E0F'],
+                               color_continuous_midpoint=0, hover_name='Neighborhood',
                                hover_data=[
                                    'mean_forecasted_roi', 'lower_forecasted_roi',
                                    'upper_forecasted_roi', 'std_forecasted_roi'
@@ -463,3 +676,174 @@ def map_zipcodes_return(df, plot_style='interactive', geojson_file_path='./data/
         app = dash.Dash()
         app.layout = html.Div([dcc.Graph(figure=fig)])
         app.run_server(debug=True, use_reloader=False)
+
+
+def model_report(zipcode_list, results_, show_model_performance=True, show_train_fit=True, show_prediction=True, show_detailed_prediction=True, test_conf_int=True):
+    """
+    ### predefined funtion ###
+    For visualizing reports by using results from model loop.
+
+
+    #############################  OUTPUT CONTROL  ##############################
+    #############################################################################
+    show_model_performance = True  # Performance metrics & Diagonistics plots
+    show_train_fit = True          # test and prediction fit
+    show_prediction = True         # forecast in the future
+    #---------------------------------------------------------------------------#
+    show_detailed_prediction = True  # forecast in the future, whith prediction #
+    #terminology: ###  prediction is to judge model performance   ###############
+    ###################################   &   ###################################
+    ################   forecast is prediction of unknown  #######################
+    #############################################################################
+    """
+    for best_zipcode in zipcode_list:
+        # display models
+        print(f'{"-"*157}')
+        print('\033[1m \033[5;30;47m' +
+              f'{" "*70}Report of {best_zipcode}{" "*70}' + '\033[0m')
+        print(f'{"-"*157}')
+        print('\033[1m \033[91m' + 'Model Used:')
+        display(results_[best_zipcode]['model'])
+        if show_model_performance:
+            # model performance
+            print(results_[best_zipcode]['model'].summary())
+            results_[best_zipcode]['model'].plot_diagnostics(figsize=(10, 5))
+            plt.tight_layout()
+            plt.show()
+        # extracting information from results dict
+        train = results_[best_zipcode]['train']
+        test = results_[best_zipcode]['test']
+        pred_df_test = results_[best_zipcode]['pred_df_test']
+        pred_df = results_[best_zipcode]['pred_df']
+        if show_train_fit:
+            print('\033[1m \033[1;33;40m' + 'Prediction:')
+            print('\033[0m')
+            # plot train fit
+            _, ax = plot_test_pred(test, pred_df_test, conf_int=test_conf_int)
+            ax.set_title(f'test-pred plot of {best_zipcode} [prediction reliability]',
+                         size=15)
+            plt.show()
+        if show_prediction:
+            # plot_train_test_pred
+            _, ax = plot_train_test_pred(train, test, pred_df)
+            ax.set_title(f'train-test-pred plot of {best_zipcode} [forecast]',
+                         size=15)
+            plt.show()
+        if show_detailed_prediction:
+            print('\033[1m \033[1;33;40m' + 'Insights:'+'\033[1m')
+            # train_test_pred_forecast
+            fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(15, 5))
+            ax1 = tsa.seasonal_decompose(results_['11432']['test']).trend.plot(
+                title='Most recent trend', ax=ax1)
+            ax2 = tsa.seasonal_decompose(
+                results_['11432']['test'][-36:]).seasonal.plot(
+                    title='Last three year seasonality', ax=ax2)
+            plt.show()
+            print('\033[1m \033[1;33;40m' +
+                  'Overall model performance and projected ROI:')
+            _, ax, _ = plot_train_test_pred_forecast(train, test, pred_df_test,
+                                                     pred_df, best_zipcode)
+            ax.set_title(f'train-test-pred-forecast plot of {best_zipcode}',
+                         size=15)
+        plt.show()
+    pass
+
+
+def output_df(zipcode_list, results_):
+    """ 
+    # data processing function #
+    creats a dataframe for decision making.
+    """
+    def roi(end, beg):
+        """Return on investment calculation"""
+        x = (end-beg)/beg
+        x = (x*100).round(2)
+        return x
+
+    def relative_standard_deviation(lower, upper):
+        """
+        Standard deviation expressed in percent and is obtained by multiplying the standard 
+        deviation by 100 and dividing this product by the average.
+        _________________________________________________________________________
+        Reference: https://www.chem.tamu.edu/class/fyp/keeney/stddev.pdf
+        """
+        x = abs(upper-lower)
+        y = (np.std(x)/np.mean(x))*100
+        return y
+
+    output = {}
+    for item in zipcode_list:
+        temp_dict = {}
+        temp_dict['aic'] = results_[item]['model'].aic().round(2)
+        temp_dict['bic'] = results_[item]['model'].bic().round(2)
+        temp_dict['oob'] = results_[item]['model'].oob().round(2)
+        rmse_o, mse_o, mae_o = model_error_report(results_[item]['test'], results_[
+                                                  item]['pred_df_test'], show_report=False)
+        temp_dict['rmse'] = rmse_o.round()
+        temp_dict['mse'] = mse_o.round()
+        temp_dict['mse'] = mae_o.round()
+        temp_dict['r2'] = r2_score(results_[item]['test'], results_[
+                                   item]['pred_df_test']['prediction']).round(3)
+        temp_dict['test_roi'] = roi(results_[
+                                    item]['test'][-1], results_[item]['test'][-(len(results_[item]['pred_df'])+1)])
+        temp_dict['pred_roi'] = roi(results_[
+                                    item]['pred_df']['prediction'][-1], results_[item]['pred_df']['prediction'][0])
+        temp_dict['three_year_projected_mean_roi'] = roi(
+            results_[item]['pred_df'][-1:]['prediction'][0], results_[item]['test'][-1:][0])
+        temp_dict['risk'] = round(relative_standard_deviation(
+            results_[item]['pred_df']['lower'], results_[item]['pred_df']['upper']), 2)
+        temp_dict['three_year_projected_lower_roi'] = roi(
+            results_[item]['pred_df'][-1:]['lower'][0], results_[item]['test'][-1:][0])
+        temp_dict['three_year_projected_upper_roi'] = roi(
+            results_[item]['pred_df'][-1:]['upper'][0], results_[item]['test'][-1:][0])
+        output[item] = temp_dict
+    out = pd.DataFrame(output).T
+    out.index.name = "ZipCode"
+    return out
+
+
+def prediction_analysis(ts, test, forecast):
+    """
+    ### predefined function ###
+    Creats forecast and time series data with 2 resistance and 5 support level.
+
+    Parameters:
+    ===========
+    ts = array like; no default; time series y,
+    test = array like; no default; test y,
+    forecast = pandas.DataFrame; predicted y with confidance interval.
+    """
+    HIGH = test.max()
+    LOW = test.min()
+    CLOSE = test.mean()
+
+    PP = (HIGH + LOW + CLOSE) / 3
+    S1 = 2 * PP - HIGH
+    S2 = PP - (HIGH - LOW)
+    S3 = PP * 2 - (2 * HIGH - LOW)
+    S4 = PP * 3 - (3 * HIGH - LOW)
+    S5 = PP * 4 - (4 * HIGH - LOW)
+    R1 = 2 * PP - LOW
+    R2 = PP + (HIGH - LOW)
+
+    fig, ax = plt.subplots(figsize=(15, 5))
+    ts.plot(ax=ax)
+    forecast['prediction'].plot(ax=ax, color='#5d9db1')
+    ax.fill_between(forecast.index,
+                    forecast.lower,
+                    forecast.upper,
+                    alpha=.6,
+                    color='#accdd7')
+    kws = dict(color='#ff6961', xmin=.6, ls='dashed')
+    kws_1 = dict(color='#008807', xmin=.6, ls='dashed')
+    plt.axhline(S1, **kws, label='Support 1')
+    plt.axhline(S2, **kws, label='Support 2', alpha=.8)
+    plt.axhline(S3, **kws, label='Support 3', alpha=.7)
+    plt.axhline(S4, **kws, label='Support 4', alpha=.6)
+    plt.axhline(S5, **kws, label='Support 5', alpha=.5)
+    plt.axhline(R1, **kws_1, label='Resistance 1')
+    plt.axhline(R2, **kws_1, label='Resistance 2', alpha=.7)
+    plt.title(f'Zipcode {ts.name} prediction analysis', fontsize=15)
+    plt.legend()
+    plt.show()
+    return fig, ax
