@@ -7,3 +7,4 @@ __pycache__
 .vscode
 vault
 model/model.joblib
+model/model_compressed.joblib

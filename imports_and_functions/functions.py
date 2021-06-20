@@ -1,4 +1,5 @@
 # imports
+import plotly.express as px
 from sklearn.metrics import r2_score
 from pmdarima.arima.utils import ndiffs
 from pmdarima.arima.utils import nsdiffs
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import matplotlib as mpl
 import statsmodels.tsa.api as tsa
-from IPython.display import display
+from IPython.display import display, Markdown
 import numpy as np
 import pmdarima as pm
 import warnings
@@ -210,7 +211,7 @@ def plot_acf_pacf(ts, figsize=(15, 8), lags=24):
     fig, ax = plt.subplots(nrows=3, figsize=figsize)
     # Plot ts
     ts.plot(ax=ax[0], color='#886393', lw=5)
-    # Plot acf, pavf
+    # Plot acf, pacf
     plot_acf(ts, ax=ax[1], lags=lags, color='#886393', lw=5)
     plot_pacf(ts, ax=ax[2], lags=lags, method='ld', color='#886393', lw=5)
     fig.tight_layout()
@@ -226,7 +227,8 @@ def plot_acf_pacf(ts, figsize=(15, 8), lags=24):
 def adfuller_test_df(ts, index=['AD Fuller Results']):
     """
     Adapted from https://github.com/learn-co-curriculum/dsc-removing-trends-lab/tree/solution
-    Returns the AD Fuller Test Results and p-values for the null hypothesis that there the data is non-stationary (that there is a unit root in the data).
+    Returns the AD Fuller Test Results and p-values for the null hypothesis that there the 
+    data is non-stationary (that there is a unit root in the data).
 
     ### helper function ###
 
@@ -376,7 +378,7 @@ def grid_search(ts, train, test, forecast_steps=36, figsize=(15, 5), trace=True,
     """
     grid searching using pyramid arima for best p, d, q, P, D, Q, m for 
     a SARIMA model using predefined conditions and shows model performance
-     for perdicting in the future.
+     for predicting in the future.
 
     ### predefined options ###
     # d and D is calculated using ndiffs using 'adf'(Augmented Dickey–Fuller test for Unit Roots)
@@ -409,7 +411,7 @@ def grid_search(ts, train, test, forecast_steps=36, figsize=(15, 5), trace=True,
     ts = array like; no default; time series y, 
     train = array like; no default; train y, 
     test = array like; no default; test y, 
-    forecast_steps = int; default = 36, steps to forecast into future. 
+    forecast_steps = int; default = 36, steps to forecast into future, 
     figsize = tuple of int or float; deafult = (15, 8), figure size control, 
     trace = bool; default = True, 
     display_results = bool; default = True, 
@@ -622,6 +624,7 @@ def zip_code_map(roi_df):
 
 def map_zipcodes_return(df, plot_style='interactive', geojson_file_path='./data/ny_new_york_zip_codes_geo.min.json'):
     """
+    GeoJson sourced from: 
     Returns an map of zip codes colorized to reflect
     expected return on investment using plotly express. 
     ### pre-defined function ###
@@ -804,7 +807,6 @@ def output_df(zipcode_list, results_):
 
 def prediction_analysis(ts, test, forecast):
     """
-    ### predefined function ###
     Creats forecast and time series data with 2 resistance and 5 support level.
 
     Parameters:
@@ -827,13 +829,16 @@ def prediction_analysis(ts, test, forecast):
     R2 = PP + (HIGH - LOW)
 
     fig, ax = plt.subplots(figsize=(15, 5))
-    ts.plot(ax=ax)
+    # TS
+    ts.plot(ax=ax, color='#886393')
+    # forecast
     forecast['prediction'].plot(ax=ax, color='#5d9db1')
     ax.fill_between(forecast.index,
                     forecast.lower,
                     forecast.upper,
                     alpha=.6,
                     color='#accdd7')
+    # support and resistance
     kws = dict(color='#ff6961', xmin=.6, ls='dashed')
     kws_1 = dict(color='#008807', xmin=.6, ls='dashed')
     plt.axhline(S1, **kws, label='Support 1')
@@ -847,3 +852,55 @@ def prediction_analysis(ts, test, forecast):
     plt.legend()
     plt.show()
     return fig, ax
+
+
+def show_py_file_content(file='./imports_and_functions/functions.py'):
+    """
+    displays content of a py file output formatted as python code in jupyter notebook.
+
+    Parameter:
+    ==========
+    file = `str`; default: './imports_and_functions/functions.py',
+                path to the py file.
+    """
+    with open(file, 'r', encoding="utf8") as f:
+        x = f"""```python
+{f.read()}```"""
+        display(Markdown(x))
+
+
+def map_based_on_zipcode(map_df, mapbox_style="open-street-map"):
+    """ 
+    plots map
+
+    Parameters:
+    ===========
+    mapbox_style = str; options are following:
+        > "white-bg" yields an empty white canvas which results in no external HTTP requests
+
+        > "carto-positron", "carto-darkmatter", "stamen-terrain",
+          "stamen-toner" or "stamen-watercolor" yield maps composed of raster tiles 
+          from various public tile servers which do not require signups or access tokens
+
+        > "open-street-map" does work
+    """
+    fig = px.scatter_mapbox(
+        map_df,
+        lat=map_df.lat,
+        lon=map_df.long,
+        color='Zipcode',
+        zoom=11,
+        size='values',
+        height=1200,
+        title='Zipcode location',
+        center={
+            'lat': map_df[map_df['Zipcode'] == '11418']['lat'].values[0],
+            'lon': map_df[map_df['Zipcode'] == '11418']['long'].values[0]
+        })
+    # use "stamen-toner" or "carto-positron"
+    fig.update_layout(mapbox_style=mapbox_style)
+    fig.update_layout(margin={"r": 0, "l": 0, "b": 1})
+    # fig.update_traces(marker=dict(size=20),
+    #                   selector=dict(mode='markers'))
+    fig.show()
+    pass

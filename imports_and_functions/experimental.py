@@ -8,11 +8,12 @@ from sklearn.compose import ColumnTransformer
 from IPython.display import display, HTML, Markdown
 from sklearn import metrics
 from imblearn.over_sampling import SMOTENC
-import joblib 
+import joblib
 import time
-### function name starting with "z_" are experimental and not fully tested ###
-# Future plan: restructure functions to behave as attached to class using OOP#
-# handle multinomial target plotting, use modin in place of pandas
+    ### function name starting with "z_" are experimental and not fully tested ###
+    # Future plan: restructure functions to behave as attached to class using OOP#
+    # handle multinomial target plotting, use modin in place of pandas
+
 
 def z_dataset_preprocessing_pipeline(X_train,
                                      X_test,
@@ -24,9 +25,9 @@ def z_dataset_preprocessing_pipeline(X_train,
     """ ######## Work in progress. Code works good enough.
     Takes X_train, and X_test DataFrames. Then seperates DataFrame by categorical and numerical coulmns, and performs OneHotEncoding with droping control on categorical coulumns and scaling on numerical columns, user can select scalers. 
     Returns transformed DataFrames.
-    
+
     All transforming steps are done using scikit-learn preprocessing, pipeline, and compose objects; and DataFrame creation is done with pandas. 
-    
+
     :::: MAKE SURE EVERY FEATURE HAS CORRECT DATA TYPE; EITHER CATEGORICAL OR NUMERICAL :::
 
     Parameters:
@@ -80,7 +81,7 @@ def z_dataset_preprocessing_pipeline(X_train,
         - possible error if test data has unseen category; creating new 
           DataFrame will fail.
         - Source can be modified to add more preprocessing steps.
-    
+
     Stage: Coding
 
     Next steps: 
@@ -116,14 +117,14 @@ def z_dataset_preprocessing_pipeline(X_train,
         named_steps['ohe'].get_feature_names(cate_cols).tolist())
 
     # creating modified X_test
-    ## NOTE: possible error if test data has unseen category, in this step.
-    ## for debugging such error modify this, and its processing steps `in pipe_cate`.
+    # NOTE: possible error if test data has unseen category, in this step.
+    # for debugging such error modify this, and its processing steps `in pipe_cate`.
     ret_X_test = pd.DataFrame(
         preprocessor.transform(X_test),
         columns=nume_cols +
         preprocessor.named_transformers_['categorical_features'].
         named_steps['ohe'].get_feature_names(cate_cols).tolist())
-    
+
     # NEW ADDITION
     if oversampling:
         smotenc_features = [True] * len(nume_cols) + [False] * len(
@@ -143,7 +144,8 @@ def z_dataset_preprocessing_pipeline(X_train,
             return X_train_oversampled, ret_X_test
         else:
             return ret_X_train, ret_X_test
-    
+
+
 def z_experimental_model_report_(model,
                                  X_train,
                                  y_train,
@@ -159,9 +161,9 @@ def z_experimental_model_report_(model,
     """ ### Work in progress, code works. Bulding upon the working version of the code.###
     Report of model performance using train-test split dataset.
     Shows train and test score, Confusion Matrix and, ROC Curve of performane of test data.
-    
+
     Intended to work ONLY on model where target has properly encoded binomial class value.
-    
+
     Parameters:
     ===========
     model     = object, scikit-learn model object; no default.
@@ -179,7 +181,7 @@ def z_experimental_model_report_(model,
                 - False, to turn off report.
     fitted_model = False,
     display_labels = ['not_met', 'met']
-    
+
     Future plan:
     - `save model` option in local drive using joblib or pickle
     - return fitted model
@@ -193,7 +195,7 @@ def z_experimental_model_report_(model,
     - rethink control flow of display options, am I using more code than necessary?
 
     Stage: Concept, idea generation.
-    
+
     Changelog:
     - built skeleton
     - added fitted_model
