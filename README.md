@@ -701,19 +701,21 @@ Although modeling process is adequate, there are some caveats.
 
 # NEXT STEPS
 
-- add variables to model, using a `SARIMAX` model
- - interest rate
- - other qualitative indicators
+- Add variables to model, for using using a `SARIMAX` model
+  - Interest rate
+  - Economical indicators
+  - Other qualitative indicators, e.g., school, public transport access.
 
-- try other models
+- Try other models
     - RNN
     - Prophet
-    - use transfer learning
+    - Use transfer learning
  
  # REPOSITORY STRUCTURE
+ 
 ```
 ├── README.md                                             # readme file
-├── assets                                                # image files
+├── assets                                                # image files and backups
 │   ├── ... 
 ├── data                                                  # data used for analysis
 │   ├── lat_long.csv                                      # location info
@@ -734,3 +736,4 @@ Although modeling process is adequate, there are some caveats.
 ├── student.ipynb                                         # Main notebook used
 └── student.pdf                                           # pdf version of the notebook
 ```
+ Note: scraping notebook is not synced to github for privacy reason. model files exceed github filesize limit, even github LFS.
