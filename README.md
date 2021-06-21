@@ -10,7 +10,6 @@ As phase 4 project of [Flatiron Data Science Bootcamp](https://flatironschool.co
 * Instructor name: James Irving
 ___
 
-<br>
 
 <h2>OVERVIEW</h2>
 
@@ -30,8 +29,6 @@ Ref: [Norada Real Estate](https://www.noradarealestate.com/blog/new-york-real-es
 </p>
 
 ___
-
-<br>
 
 
 <h2>BUSINESS PROBLEM</h2>
@@ -79,20 +76,6 @@ ___
 - those are also available in the APPENDIX section.
 
 
-```python
-%load_ext autoreload
-%autoreload 2
-```
-
-
-```python
-import imports_and_functions as fn
-from imports_and_functions.packages import *
-
-%matplotlib inline
-mpl.rcParams['figure.facecolor'] = '#232323'
-```
-
 # OBTAIN
 
 - Main dataset: 
@@ -100,7 +83,7 @@ mpl.rcParams['figure.facecolor'] = '#232323'
 - GeoJson:
   - GeoJson file used to generate map is sourced from [here](https://github.com/OpenDataDE/State-zip-code-GeoJSON/blob/4cc2657044efd08477465aed1912dca30198d441/ny_new_york_zip_codes_geo.min.json) provided by [Open Data Delaware](https://github.com/OpenDataDE/). A copy of that can be found at `./data/ny_new_york_zip_codes_geo.min.json` in this repository.
 - Zipcodes with Neighborhood information
- - This file was obtained from [here](https://github.com/erikgregorywebb/nyc-housing/blob/master/Data/nyc-zip-codes.csv). A copy of this can be found at `./data/nyc-zip-codes.txt` in this repository.
+  - This file was obtained from [here](https://github.com/erikgregorywebb/nyc-housing/blob/master/Data/nyc-zip-codes.csv). A copy of this can be found at `./data/nyc-zip-codes.txt` in this repository.
 
 ## Zillow Dataset information<br>
 
@@ -202,6 +185,7 @@ SAMPLE OF THE PROCESS
     
     Best model:  ARIMA(1,2,2)(2,0,0)[12] intercept
     Total fit time: 54.273 seconds
+    
     ===========================
     Model Diagonostics of 11417
     ===========================
@@ -658,7 +642,7 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
 
 
     Best investment opportunities
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    +++++++++++++++++++++++++++++++++++++++++++++++
     
 
 
@@ -667,8 +651,6 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
     
 
 
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
 
 
     
@@ -676,27 +658,16 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
     
 
 
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-
 
     
 ![png](./assets/output_57_5.png)
     
 
 
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-
 
     
 ![png](./assets/output_57_7.png)
     
-
-
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-
 
     
 ![png](./assets/output_57_9.png)
@@ -739,26 +710,27 @@ Although modeling process is adequate, there are some caveats.
     - Prophet
     - use transfer learning
  
- # REPO STRUCTURE
+ # REPOSITORY STRUCTURE
 ```
-├── README.md                                 # readme file
-├── assets                                    # image files
-├── data                                      # data used for analysis
-│   ├── lat_long.csv                          # location info
-│   ├── ny_new_york_zip_codes_geo.min.json    # GeoJSON file
-│   ├── nyc-zip-codes.txt                     # zipcode with neighbourhood information
-│   └── zillow_raw_2021.csv                   # primary data source
-├── imports_and_functions                     # local package
+├── README.md                                             # readme file
+├── assets                                                # image files
+│   ├── ... 
+├── data                                                  # data used for analysis
+│   ├── lat_long.csv                                      # location info
+│   ├── ny_new_york_zip_codes_geo.min.json                # GeoJSON file
+│   ├── nyc-zip-codes.txt                                 # zipcodes with neighbourhood information
+│   └── zillow_raw_2021.csv                               # primary data source
+├── imports_and_functions                                 # local package
 │   ├── __init__.py
-│   ├── functions.py                          # custom functions
-│   └── packages.py                           # imports used in the notebook
-├── model                                     # saved models and python obects
+│   ├── functions.py                                      # custom functions
+│   └── packages.py                                       # imports used in the notebook
+├── model                                                 # saved models and python obects
 │   ├── fig_dash.py
 │   ├── model.joblib   ## NOT IN REPO
 │   ├── model_compressed.joblib   ## NOT IN REPO
 │   └── viz.joblib
-├── presentation.pdf                          # presentation file
-├── presentation.pptx                         # presentation file
-├── student.ipynb                             # Main notebook used
-└── student.pdf                               # pdf version of the notebook
+├── presentation.pdf                                      # presentation file
+├── presentation.pptx                                     # presentation file
+├── student.ipynb                                         # Main notebook used
+└── student.pdf                                           # pdf version of the notebook
 ```
