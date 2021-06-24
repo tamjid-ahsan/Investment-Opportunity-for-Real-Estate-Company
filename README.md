@@ -329,6 +329,8 @@ Model looks good in fitting and predicting with some long tailed residuals at bo
 I am going to consider these parameters as the best one for this type of model. This can be improved by using SARIMAX model by using some of those factors as exog, but this increased model complexity and data needed for model as the exog's true data or a proxy is needed for prediction in the future.
 
 ## All Zipcodes
+ 
+ This process is run on a loop for all the zipcodes and results saved and used for the next part of the analysis.
 
 ## High return Zipcodes
 
