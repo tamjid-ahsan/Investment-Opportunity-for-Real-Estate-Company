@@ -115,35 +115,37 @@ ___
 ## EDA
 
 ### Average home price by zipcode
-
     
 ![png](./assets/output_28_0.png)
     
-
+Typical house price in Queens ranges from 77k to just over 960k. Mean price is `$375207`. Mean 25th quantile is  `$285044` and `$457253` is 75th quantile. Zip code `11363` has the highest value and `11692` has the lowest property value.
 
 ### Recent trend
-
-
-
-
-    
+ 
 ![png](./assets/output_30_0.png)
     
+House price increased till 2008 and then fell because of the global financial crisis, caused by subprime mortgage crisis that lead to a global recession. It did not recover till 2015-16. Although the recovery process stated from 2010. Recently the market is booming once again reaching new high.
 
 ### Three year ROI
-
-
-
     
 ![png](./assets/output_33_0.png)
     
-
-
-comment
+ROI is negative for only a few of the zip codes
+ - 11101
+ - 11436
+ - 11366<br>
+ 
+Highest ROI Zip code:
+ - 11104
+ - 11692
+ - 11693<br>
+  
+This makes Queens County NY a relatively safe investment region for real estate for housing market.
 
 ### Map of zipcodes
 ![png](./assets/toner_map.png)
 
+This is a visual representation of the zip codes based on the mean typical house value of Queens County NY. The bubbles are mostly the same size, meaning that they share some similar properties across the zip codes.
 # MODEL
 
 ## Model on test Zipcode
@@ -640,40 +642,23 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
 
 
 
+<br>
 
-    Best investment opportunities
-    +++++++++++++++++++++++++++++++++++++++++++++++
-    
-
-
+Best investment opportunities
     
 ![png](./assets/output_57_1.png)
     
-
-
-
-
-    
 ![png](./assets/output_57_3.png)
-    
-
-
-
     
 ![png](./assets/output_57_5.png)
     
-
-
-
-    
 ![png](./assets/output_57_7.png)
-    
-
-    
+        
 ![png](./assets/output_57_9.png)
     
+All of them looks similar. They all should be a good investment and they are not expected to go under support level one, they are likely to breach resistance two soon if the current trend persists.
 
-
+Run `fig_dash.py` for an interactive dashboard from the location `./model/fog_dash.py` containing forecast for all the zip codes.
 # RECOMMENDATION
 
 Invest in following zip codes:
@@ -727,7 +712,8 @@ Although modeling process is adequate, there are some caveats.
 │   ├── functions.py                                      # custom functions
 │   └── packages.py                                       # imports used in the notebook
 ├── model                                                 # saved models and python obects
-│   ├── fig_dash.py
+│   ├── fig_dash.py                                       # Dash dashboard
+│   ├── ts.joblib                                         # cleaned and process time series
 │   ├── model.joblib   ## NOT IN REPO
 │   ├── model_compressed.joblib   ## NOT IN REPO
 │   └── viz.joblib
@@ -737,3 +723,5 @@ Although modeling process is adequate, there are some caveats.
 └── student.pdf                                           # pdf version of the notebook
 ```
  Note: scraping notebook is not synced to github for privacy reason. model files exceed github filesize limit, even github LFS.
+ 
+For additional info contact [me](https://www.linkedin.com/in/tamjidahsan/)  via linkdin.

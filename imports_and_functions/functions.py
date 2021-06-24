@@ -1,4 +1,5 @@
 # imports
+import plotly.graph_objects as go
 import plotly.express as px
 from sklearn.metrics import r2_score
 from pmdarima.arima.utils import ndiffs
@@ -904,3 +905,56 @@ def map_based_on_zipcode(map_df, mapbox_style="open-street-map"):
     #                   selector=dict(mode='markers'))
     fig.show()
     pass
+
+
+def fig_ret(code, results):
+
+    pred = results[code]['pred_df']['prediction']
+    low = results[code]['pred_df']['lower']
+    high = results[code]['pred_df']['upper']
+    mergerd_train_test = results[code]['train'].combine_first(
+        results[code]['test'])
+
+    import plotly.io as pio
+    pio.templates.default = 'presentation'  # plotly_dark' , ggplot2
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(y=mergerd_train_test,
+                   x=mergerd_train_test.index,
+                   mode='lines+markers',
+                   line_color='#537d8d',
+                   name='TS'))
+
+    fig.add_trace(
+        go.Scatter(y=low,
+                   x=low.index,
+                   mode='lines',
+                   name='Lower CI',
+                   line_color='#22c256'))
+    fig.add_trace(
+        go.Scatter(
+            y=high,
+            x=high.index,
+            fill='tonexty',
+            mode='lines',
+            line_color='#22c256',
+            opacity=.5,
+            name='high CI',
+        ))
+    fig.add_trace(
+        go.Scatter(y=pred,
+                   x=pred.index,
+                   mode='lines+markers',
+                   name='Forecast',
+                   line_color='#ff6961'))
+    fig.update_layout(title=f"Time series plot with forecast, of zipcode: {code}",
+                      xaxis_title="Years",
+                      yaxis_title="Home values",
+                      legend_title="Legends",
+                      font=dict(family="Courier New, monospace",
+                                size=12,
+                                color="RebeccaPurple"))
+    fig.show()
+    return fig

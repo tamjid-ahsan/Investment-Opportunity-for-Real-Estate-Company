@@ -1,15 +1,114 @@
 import dash
+from dash_bootstrap_components._components.Container import Container
+from dash_bootstrap_components._components.Row import Row
 import dash_core_components as dcc
 import dash_html_components as html
 import joblib
+from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
 
-fig = joblib.load('viz.joblib')
+
 print(f'{"+"*30}')
 print('press `CTRL+C` to exit')
 print(f'{"+"*30}')
-app = dash.Dash(__name__)
-app.layout = html.Div([dcc.Graph(figure=fig)])
+
+fig1 = joblib.load('viz.joblib')
+
+
+load = joblib.load('model.joblib')
+results = load['Results']
+
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SLATE], meta_tags=[{'name': 'viewport',
+                                                                               'content': 'width=device-width, initial-scale=1.0'}])
+
+app.layout = dbc.Container([
+    dbc.Row(
+        dbc.Col(html.H1(
+            "House ROI after three years in Queens NY", className='text-center')
+        )
+    ),
+
+    dbc.Row(
+        dbc.Col(
+            dcc.Graph(
+                figure=fig1
+            ))),
+    dbc.Row(
+        dbc.Col(html.H4(
+            "House Price in Queens NY, choose zipcode for forecast of three years", className='text-center')
+        )
+    ),
+
+    dbc.Row(
+        dbc.Col([
+            dcc.Dropdown(id='my-dpdn', className='bg-dark ', multi=False, value='11432',
+                         options=[{'label': x, 'value': x}
+                                  for x in results.keys()]
+                         ),
+            dcc.Graph(id='line-fig', figure={})
+        ])
+    )  # ,
+
+    # dbc.Row(dbc.Col(
+    #     dcc.Graph(
+    #         figure=fig))
+    #         )
+])
+
+
+@app.callback(Output('line-fig', 'figure'), Input('my-dpdn', 'value'))
+def fig_ret(code):
+    # code = '11432'
+    pred = results[code]['pred_df']['prediction']
+    low = results[code]['pred_df']['lower']
+    high = results[code]['pred_df']['upper']
+    mergerd_train_test = results[code]['train'].combine_first(
+        results[code]['test'])
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(y=mergerd_train_test,
+                   x=mergerd_train_test.index,
+                   mode='lines+markers',
+                   line_color='#537d8d',
+                   name='TS'))
+
+    fig.add_trace(
+        go.Scatter(y=low,
+                   x=low.index,
+                   mode='lines',
+                   name='Lower CI',
+                   line_color='#22c256'))
+    fig.add_trace(
+        go.Scatter(
+            y=high,
+            x=high.index,
+            fill='tonexty',
+            mode='lines',
+            line_color='#22c256',
+            opacity=.5,
+            name='high CI',
+        ))
+    fig.add_trace(
+        go.Scatter(y=pred,
+                   x=pred.index,
+                   mode='lines+markers',
+                   name='Forecast',
+                   line_color='#ff6961'))
+    fig.update_layout(title=f"Time series plot with forecast of {code}",
+                      xaxis_title="Years",
+                      yaxis_title="Home values",
+                      legend_title="Legends",
+                      font=dict(family="Courier New, monospace",
+                                size=12,
+                                color="RebeccaPurple"))
+    # fig.show()
+    return fig
 # app.run_server(debug=True, use_reloader=False)
 
+
 if __name__ == '__main__':
-    app.run_server(debug=False, use_reloader=False)
+    app.run_server(debug=True)

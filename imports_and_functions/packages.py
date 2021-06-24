@@ -11,6 +11,7 @@ import pmdarima as pm
 import statsmodels.tsa.api as tsa
 import pandas as pd
 pd.set_option('display.max_columns', 0)
+from ipywidgets import interact
 
 # OG plot
 jtplot.reset()
