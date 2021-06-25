@@ -103,14 +103,10 @@ ___
 | Rest of the colums | dates | from Jan 31, 1996 to Apr 30, 2021 |
 
 
-* steps are not shown to find out those values as this dataset will be sliced to focus only on Queens County, NY as per the goal of this analysis.
-
 # SCRUB & EXPLORE
 
-## Selecting Queens, New York data
+Focusing only on 55 zip codes in Queens County, New York.
 
-
-## wide format to long
 
 ## EDA
 

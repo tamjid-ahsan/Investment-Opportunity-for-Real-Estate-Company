@@ -1,6 +1,4 @@
 import dash
-from dash_bootstrap_components._components.Container import Container
-from dash_bootstrap_components._components.Row import Row
 import dash_core_components as dcc
 import dash_html_components as html
 import joblib
@@ -49,18 +47,12 @@ app.layout = dbc.Container([
                          ),
             dcc.Graph(id='line-fig', figure={})
         ])
-    )  # ,
-
-    # dbc.Row(dbc.Col(
-    #     dcc.Graph(
-    #         figure=fig))
-    #         )
+    )  
 ])
 
 
 @app.callback(Output('line-fig', 'figure'), Input('my-dpdn', 'value'))
 def fig_ret(code):
-    # code = '11432'
     pred = results[code]['pred_df']['prediction']
     low = results[code]['pred_df']['lower']
     high = results[code]['pred_df']['upper']
@@ -105,9 +97,7 @@ def fig_ret(code):
                       font=dict(family="Courier New, monospace",
                                 size=12,
                                 color="RebeccaPurple"))
-    # fig.show()
     return fig
-# app.run_server(debug=True, use_reloader=False)
 
 
 if __name__ == '__main__':

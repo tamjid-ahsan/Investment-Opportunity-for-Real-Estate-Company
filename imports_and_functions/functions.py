@@ -1,4 +1,5 @@
 # imports
+import joblib
 import plotly.graph_objects as go
 import plotly.express as px
 from sklearn.metrics import r2_score
@@ -504,103 +505,6 @@ def grid_search(ts, train, test, forecast_steps=36, figsize=(15, 5), trace=True,
     return auto_model, pred_df_test, pred_df
 
 
-def model_loop(ts_df,
-               zipcode_list,
-               train_size=.8, show_grid_search_steps=True,
-               forecast_steps=36, figsize=(15, 5),
-               display_details=False):
-    """
-    Loops through provided zipcodes as list with grid_search function and 
-    stores output using provided train test split.
-
-    Parameters:
-    ===========
-    ts_df = pandas.DataFrame, all zipcode inforamation
-    zipcode_list = list, zipcodes to loop
-    train_size=.8, 
-    show_grid_search_steps = bool; default = True, display gid search steps,
-    display_details = bool; default = False, show forecast breakdown.
-    forecast_steps = int; default = 36, steps to forecast into future. 
-    figsize = tuple of int or float; deafult = (15, 8), figure size control,
-
-    Returns: 
-    ========
-    Result dict, and ROI dataframe
-    """
-    # store results
-    RESULTS = {}
-    # store ROI information
-    ROI = pd.DataFrame(columns=[
-        'zipcode', 'mean_forecasted_roi', 'lower_forecasted_roi',
-        'upper_forecasted_roi', 'std_forecasted_roi'
-    ])
-
-    # loop counter
-    n = 0
-    for zipcode in zipcode_list:
-        # loop counter
-        n = n + 1
-        len_ = len(zipcode_list)
-        print(f"""Working on #{n} out of {len_} zipcodes.""")
-        print('Working on:', zipcode)
-        # make empty dicts for storing data
-        temp_dict = {}
-        # temp_dict_1 = {}
-
-        # make a copy of time series data
-        ts = ts_df[zipcode].dropna().copy()
-        # train-test split
-        train_size = train_size
-        split_idx = round(len(ts) * train_size)
-        # split
-        train = ts.iloc[:split_idx]
-        test = ts.iloc[split_idx:]
-
-        # Get best params using auto_arima on train-test data
-        if display_details:
-            display_results_gs = True
-            display_roi_results_gs = True
-        else:
-            display_results_gs = False
-            display_roi_results_gs = False
-
-        model, pred_df_test, pred_df = grid_search(ts,
-                                                   train,
-                                                   test,
-                                                   forecast_steps=forecast_steps,
-                                                   figsize=figsize,
-                                                   trace=show_grid_search_steps,
-                                                   display_results=display_results_gs,
-                                                   display_roi_results=display_roi_results_gs)
-
-        # storing data in RESULTS
-        temp_dict['model'] = model
-        temp_dict['train'] = train
-        temp_dict['test'] = test
-        temp_dict['pred_df_test'] = pred_df_test
-        temp_dict['pred_df'] = pred_df
-
-        RESULTS[zipcode] = temp_dict
-
-        # storing data in ROI
-        mean_roi = (pred_df[-1:]['prediction'][0] - test[-1:][0])/test[-1:][0]
-        lower_roi = (pred_df[-1:]['lower'][0] - test[-1:][0])/test[-1:][0]
-        upper_roi = (pred_df[-1:]['upper'][0] - test[-1:][0])/test[-1:][0]
-        std_roi = np.std([lower_roi, upper_roi])
-
-        roi_df = pd.DataFrame([{
-            'zipcode': zipcode,
-            'mean_forecasted_roi': mean_roi,
-            'lower_forecasted_roi': lower_roi,
-            'upper_forecasted_roi': upper_roi,
-            'std_forecasted_roi': std_roi
-        }])
-        ROI = ROI.append(roi_df, ignore_index=True)
-        print('-' * 90, end='\n')
-    print('Looping completed.')
-    return RESULTS, ROI
-
-
 def zip_code_map(roi_df):
     """
     Returns an interactive map of zip codes colorized to reflect
@@ -682,133 +586,9 @@ def map_zipcodes_return(df, plot_style='interactive', geojson_file_path='./data/
         app.run_server(debug=True, use_reloader=False)
 
 
-def model_report(zipcode_list, results_, show_model_performance=True, show_train_fit=True, show_prediction=True, show_detailed_prediction=True, test_conf_int=True):
-    """
-    ### predefined funtion ###
-    For visualizing reports by using results from model loop.
-
-
-    #############################  OUTPUT CONTROL  ##############################
-    #############################################################################
-    show_model_performance = True  # Performance metrics & Diagonistics plots
-    show_train_fit = True          # test and prediction fit
-    show_prediction = True         # forecast in the future
-    #---------------------------------------------------------------------------#
-    show_detailed_prediction = True  # forecast in the future, whith prediction #
-    #terminology: ###  prediction is to judge model performance   ###############
-    ###################################   &   ###################################
-    ################   forecast is prediction of unknown  #######################
-    #############################################################################
-    """
-    for best_zipcode in zipcode_list:
-        # display models
-        print(f'{"-"*157}')
-        print('\033[1m \033[5;30;47m' +
-              f'{" "*70}Report of {best_zipcode}{" "*70}' + '\033[0m')
-        print(f'{"-"*157}')
-        print('\033[1m \033[91m' + 'Model Used:')
-        display(results_[best_zipcode]['model'])
-        if show_model_performance:
-            # model performance
-            print(results_[best_zipcode]['model'].summary())
-            results_[best_zipcode]['model'].plot_diagnostics(figsize=(10, 5))
-            plt.tight_layout()
-            plt.show()
-        # extracting information from results dict
-        train = results_[best_zipcode]['train']
-        test = results_[best_zipcode]['test']
-        pred_df_test = results_[best_zipcode]['pred_df_test']
-        pred_df = results_[best_zipcode]['pred_df']
-        if show_train_fit:
-            print('\033[1m \033[1;33;40m' + 'Prediction:')
-            print('\033[0m')
-            # plot train fit
-            _, ax = plot_test_pred(test, pred_df_test, conf_int=test_conf_int)
-            ax.set_title(f'test-pred plot of {best_zipcode} [prediction reliability]',
-                         size=15)
-            plt.show()
-        if show_prediction:
-            # plot_train_test_pred
-            _, ax = plot_train_test_pred(train, test, pred_df)
-            ax.set_title(f'train-test-pred plot of {best_zipcode} [forecast]',
-                         size=15)
-            plt.show()
-        if show_detailed_prediction:
-            print('\033[1m \033[1;33;40m' + 'Insights:'+'\033[1m')
-            # train_test_pred_forecast
-            fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(15, 5))
-            ax1 = tsa.seasonal_decompose(results_['11432']['test']).trend.plot(
-                title='Most recent trend', ax=ax1)
-            ax2 = tsa.seasonal_decompose(
-                results_['11432']['test'][-36:]).seasonal.plot(
-                    title='Last three year seasonality', ax=ax2)
-            plt.show()
-            print('\033[1m \033[1;33;40m' +
-                  'Overall model performance and projected ROI:')
-            _, ax, _ = plot_train_test_pred_forecast(train, test, pred_df_test,
-                                                     pred_df, best_zipcode)
-            ax.set_title(f'train-test-pred-forecast plot of {best_zipcode}',
-                         size=15)
-        plt.show()
-    pass
-
-
-def output_df(zipcode_list, results_):
-    """ 
-    # data processing function #
-    creats a dataframe for decision making.
-    """
-    def roi(end, beg):
-        """Return on investment calculation"""
-        x = (end-beg)/beg
-        x = (x*100).round(2)
-        return x
-
-    def relative_standard_deviation(lower, upper):
-        """
-        Standard deviation expressed in percent and is obtained by multiplying the standard 
-        deviation by 100 and dividing this product by the average.
-        _________________________________________________________________________
-        Reference: https://www.chem.tamu.edu/class/fyp/keeney/stddev.pdf
-        """
-        x = abs(upper-lower)
-        y = (np.std(x)/np.mean(x))*100
-        return y
-
-    output = {}
-    for item in zipcode_list:
-        temp_dict = {}
-        temp_dict['aic'] = results_[item]['model'].aic().round(2)
-        temp_dict['bic'] = results_[item]['model'].bic().round(2)
-        temp_dict['oob'] = results_[item]['model'].oob().round(2)
-        rmse_o, mse_o, mae_o = model_error_report(results_[item]['test'], results_[
-                                                  item]['pred_df_test'], show_report=False)
-        temp_dict['rmse'] = rmse_o.round()
-        temp_dict['mse'] = mse_o.round()
-        temp_dict['mse'] = mae_o.round()
-        temp_dict['r2'] = r2_score(results_[item]['test'], results_[
-                                   item]['pred_df_test']['prediction']).round(3)
-        temp_dict['test_roi'] = roi(results_[
-                                    item]['test'][-1], results_[item]['test'][-(len(results_[item]['pred_df'])+1)])
-        temp_dict['pred_roi'] = roi(results_[
-                                    item]['pred_df']['prediction'][-1], results_[item]['pred_df']['prediction'][0])
-        temp_dict['three_year_projected_mean_roi'] = roi(
-            results_[item]['pred_df'][-1:]['prediction'][0], results_[item]['test'][-1:][0])
-        temp_dict['risk'] = round(relative_standard_deviation(
-            results_[item]['pred_df']['lower'], results_[item]['pred_df']['upper']), 2)
-        temp_dict['three_year_projected_lower_roi'] = roi(
-            results_[item]['pred_df'][-1:]['lower'][0], results_[item]['test'][-1:][0])
-        temp_dict['three_year_projected_upper_roi'] = roi(
-            results_[item]['pred_df'][-1:]['upper'][0], results_[item]['test'][-1:][0])
-        output[item] = temp_dict
-    out = pd.DataFrame(output).T
-    out.index.name = "ZipCode"
-    return out
-
-
 def prediction_analysis(ts, test, forecast):
     """
-    Creats forecast and time series data with 2 resistance and 5 support level.
+    Creates forecast and time series data with 2 resistance and 5 support level.
 
     Parameters:
     ===========
@@ -958,3 +738,237 @@ def fig_ret(code, results):
                                 color="RebeccaPurple"))
     fig.show()
     return fig
+
+
+def model_loop(ts_df,
+               zipcode_list,
+               train_size=.8, show_grid_search_steps=True,
+               forecast_steps=36, figsize=(15, 5),
+               display_details=False):
+    """
+    Loops through provided zipcodes as list with grid_search function and 
+    stores output using provided train test split.
+
+    Parameters:
+    ===========
+    ts_df = pandas.DataFrame, all zipcode inforamation
+    zipcode_list = list, zipcodes to loop
+    train_size=.8, 
+    show_grid_search_steps = bool; default = True, display gid search steps,
+    display_details = bool; default = False, show forecast breakdown.
+    forecast_steps = int; default = 36, steps to forecast into future. 
+    figsize = tuple of int or float; deafult = (15, 8), figure size control,
+
+    Returns: 
+    ========
+    Result dict, and ROI dataframe
+    """
+    # store results
+    RESULTS = {}
+    # store ROI information
+    ROI = pd.DataFrame(columns=[
+        'zipcode', 'mean_forecasted_roi', 'lower_forecasted_roi',
+        'upper_forecasted_roi', 'std_forecasted_roi'
+    ])
+
+    # loop counter
+    n = 0
+    for zipcode in zipcode_list:
+        MODEL_RESULTS = {}
+        # loop counter
+        n = n + 1
+        len_ = len(zipcode_list)
+        print(f"""Working on #{n} out of {len_} zipcodes.""")
+        print('Working on:', zipcode)
+        # make empty dicts for storing data
+        temp_dict = {}
+        # temp_dict_1 = {}
+
+        # make a copy of time series data
+        ts = ts_df[zipcode].dropna().copy()
+        # train-test split
+        train_size = train_size
+        split_idx = round(len(ts) * train_size)
+        # split
+        train = ts.iloc[:split_idx]
+        test = ts.iloc[split_idx:]
+
+        # Get best params using auto_arima on train-test data
+        if display_details:
+            display_results_gs = True
+            display_roi_results_gs = True
+        else:
+            display_results_gs = False
+            display_roi_results_gs = False
+
+        model, pred_df_test, pred_df = grid_search(ts,
+                                                   train,
+                                                   test,
+                                                   forecast_steps=forecast_steps,
+                                                   figsize=figsize,
+                                                   trace=show_grid_search_steps,
+                                                   display_results=display_results_gs,
+                                                   display_roi_results=display_roi_results_gs)
+
+        # storing data in RESULTS
+        ORDER = {"order": model.order, "seasonal_order": model.seasonal_order}
+        # temp_dict['model'] = model
+        temp_dict['train'] = train
+        temp_dict['test'] = test
+        temp_dict['pred_df_test'] = pred_df_test
+        temp_dict['pred_df'] = pred_df
+        temp_dict['orders'] = ORDER
+
+        MODEL_RESULTS[zipcode] = {'model': model}
+        RESULTS[zipcode] = temp_dict
+        # saving model
+        joblib.dump(MODEL_RESULTS,
+                    f'./model/ind_model/{zipcode}.joblib', compress=9)
+
+        # storing data in ROI
+        mean_roi = (pred_df[-1:]['prediction'][0] - test[-1:][0])/test[-1:][0]
+        lower_roi = (pred_df[-1:]['lower'][0] - test[-1:][0])/test[-1:][0]
+        upper_roi = (pred_df[-1:]['upper'][0] - test[-1:][0])/test[-1:][0]
+        std_roi = np.std([lower_roi, upper_roi])
+
+        roi_df = pd.DataFrame([{
+            'zipcode': zipcode,
+            'mean_forecasted_roi': mean_roi,
+            'lower_forecasted_roi': lower_roi,
+            'upper_forecasted_roi': upper_roi,
+            'std_forecasted_roi': std_roi
+        }])
+        ROI = ROI.append(roi_df, ignore_index=True)
+        print('-' * 90, end='\n')
+    # saving roi model
+    joblib.dump(RESULTS, f'./model/all_models_output.joblib')
+    print('Looping completed.')
+    return RESULTS, ROI
+
+
+def model_report(zipcode_list, results_, show_model_performance=True, show_train_fit=True, show_prediction=True, show_detailed_prediction=True, test_conf_int=True):
+    """
+    ### predefined funtion ###
+    For visualizing reports by using results from model loop.
+
+
+    #############################  OUTPUT CONTROL  ##############################
+    #############################################################################
+    show_model_performance = True  # Performance metrics & Diagonistics plots
+    show_train_fit = True          # test and prediction fit
+    show_prediction = True         # forecast in the future
+    #---------------------------------------------------------------------------#
+    show_detailed_prediction = True  # forecast in the future, whith prediction #
+    #terminology: ###  prediction is to judge model performance   ###############
+    ###################################   &   ###################################
+    ################   forecast is prediction of unknown  #######################
+    #############################################################################
+    """
+    for best_zipcode in zipcode_list:
+        # display models
+        print(f'{"-"*157}')
+        print('\033[1m \033[5;30;47m' +
+              f'{" "*70}Report of {best_zipcode}{" "*70}' + '\033[0m')
+        print(f'{"-"*157}')
+        print('\033[1m \033[91m' + 'Model Used:')
+        model = joblib.load(f'./model/ind_model/{best_zipcode}.joblib')
+        model = model[best_zipcode]['model']
+        display(model)
+        if show_model_performance:
+            # model performance
+            print(model.summary())
+            model.plot_diagnostics(figsize=(10, 5))
+            plt.tight_layout()
+            plt.show()
+        # extracting information from results dict
+        train = results_[best_zipcode]['train']
+        test = results_[best_zipcode]['test']
+        pred_df_test = results_[best_zipcode]['pred_df_test']
+        pred_df = results_[best_zipcode]['pred_df']
+        if show_train_fit:
+            print('\033[1m \033[1;33;40m' + 'Prediction:')
+            print('\033[0m')
+            # plot train fit
+            _, ax = plot_test_pred(test, pred_df_test, conf_int=test_conf_int)
+            ax.set_title(f'test-pred plot of {best_zipcode} [prediction reliability]',
+                         size=15)
+            plt.show()
+        if show_prediction:
+            # plot_train_test_pred
+            _, ax = plot_train_test_pred(train, test, pred_df)
+            ax.set_title(f'train-test-pred plot of {best_zipcode} [forecast]',
+                         size=15)
+            plt.show()
+        if show_detailed_prediction:
+            print('\033[1m \033[1;33;40m' + 'Insights:'+'\033[1m')
+            # train_test_pred_forecast
+            fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(15, 5))
+            ax1 = tsa.seasonal_decompose(results_['11432']['test']).trend.plot(
+                title='Most recent trend', ax=ax1)
+            ax2 = tsa.seasonal_decompose(
+                results_['11432']['test'][-36:]).seasonal.plot(
+                    title='Last three year seasonality', ax=ax2)
+            plt.show()
+            print('\033[1m \033[1;33;40m' +
+                  'Overall model performance and projected ROI:')
+            _, ax, _ = plot_train_test_pred_forecast(train, test, pred_df_test,
+                                                     pred_df, best_zipcode)
+            ax.set_title(f'train-test-pred-forecast plot of {best_zipcode}',
+                         size=15)
+        plt.show()
+    pass
+
+
+def output_df(zipcode_list, results_):
+    """ 
+    # data processing function #
+    creats a dataframe for decision making.
+    """
+    def roi(end, beg):
+        """Return on investment calculation"""
+        x = (end-beg)/beg
+        x = (x*100).round(2)
+        return x
+
+    def relative_standard_deviation(lower, upper):
+        """
+        Standard deviation expressed in percent and is obtained by multiplying the standard 
+        deviation by 100 and dividing this product by the average.
+        _________________________________________________________________________
+        Reference: https://www.chem.tamu.edu/class/fyp/keeney/stddev.pdf
+        """
+        x = abs(upper-lower)
+        y = (np.std(x)/np.mean(x))*100
+        return y
+
+    output = {}
+    for item in zipcode_list:
+        model = joblib.load(f'./model/ind_model/{item}.joblib')
+        model = model[item]['model']
+        temp_dict = {}
+        temp_dict['aic'] = model.aic().round(2)
+        temp_dict['bic'] = model.bic().round(2)
+        temp_dict['oob'] = model.oob().round(2)
+        rmse_o, mse_o, mae_o = model_error_report(results_[item]['test'], results_[
+                                                  item]['pred_df_test'], show_report=False)
+        temp_dict['rmse'] = rmse_o.round()
+        temp_dict['mse'] = mse_o.round()
+        temp_dict['mse'] = mae_o.round()
+        temp_dict['r2'] = r2_score(results_[item]['test'], results_[
+                                   item]['pred_df_test']['prediction']).round(3)
+        temp_dict['test_roi'] = roi(results_[
+                                    item]['test'][-1], results_[item]['test'][-(len(results_[item]['pred_df'])+1)])
+        temp_dict['pred_roi'] = roi(results_[
+                                    item]['pred_df']['prediction'][-1], results_[item]['pred_df']['prediction'][0])
+        temp_dict['three_year_projected_mean_roi'] = roi(
+            results_[item]['pred_df'][-1:]['prediction'][0], results_[item]['test'][-1:][0])
+        temp_dict['risk'] = round(relative_standard_deviation(
+            results_[item]['pred_df']['lower'], results_[item]['pred_df']['upper']), 2)
+        temp_dict['three_year_projected_lower_roi'] = roi(
+            results_[item]['pred_df'][-1:]['lower'][0], results_[item]['test'][-1:][0])
+        temp_dict['three_year_projected_upper_roi'] = roi(
+            results_[item]['pred_df'][-1:]['upper'][0], results_[item]['test'][-1:][0])
+        output[item] = temp_dict
+    out = pd.DataFrame(output).T
+    out.index.name = "ZipCode"
+    return out
