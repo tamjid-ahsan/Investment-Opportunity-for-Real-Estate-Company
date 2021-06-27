@@ -342,7 +342,7 @@ Return on investment after three years<br>
 
 <p>Cost is assumed to be the last true value of the median price of the zipcode, i.e., value on April 30, 2021. And revenue is assumed to the mean forecasted value after three years, i.e., 36 steps in the future. Then standard deviation is taken of the return on investment on upper confidence level and lower confidence level respectively as a proxy of risk of investment.</p><br>
 
-Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and then selecting top 5 of the based on lowest risk, i.e., the risk proxy mentioned above. 
+Top five zipcodes based on best 15 ROI and then selecting top 5 of the based on lowest risk, i.e., the risk proxy mentioned above. 
 
 
 
