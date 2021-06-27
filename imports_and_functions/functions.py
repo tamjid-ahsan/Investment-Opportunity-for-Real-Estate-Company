@@ -958,8 +958,10 @@ def output_df(zipcode_list, results_):
 
     output = {}
     for item in zipcode_list:
-        model = joblib.load(f'./model/ind_model/{item}.joblib')
-        model = model[item]['model']
+        loaded = joblib.load(f'./model/ind_model/{item}.joblib')
+        
+        model = loaded[item]['model']
+        # print(model)
         temp_dict = {}
         temp_dict['aic'] = model.aic().round(2)
         temp_dict['bic'] = model.bic().round(2)
@@ -972,7 +974,7 @@ def output_df(zipcode_list, results_):
         temp_dict['r2'] = r2_score(results_[item]['test'], results_[
                                    item]['pred_df_test']['prediction']).round(3)
         temp_dict['test_roi'] = roi(results_[
-                                    item]['test'][-1], results_[item]['test'][-(len(results_[item]['pred_df'])+1)])
+                                    item]['test'][-1], results_[item]['test'][-len(results_[item]['pred_df'])])
         temp_dict['pred_roi'] = roi(results_[
                                     item]['pred_df']['prediction'][-1], results_[item]['pred_df']['prediction'][0])
         temp_dict['three_year_projected_mean_roi'] = roi(

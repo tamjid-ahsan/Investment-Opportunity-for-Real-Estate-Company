@@ -136,7 +136,9 @@ Highest ROI Zip code:
  - 11692
  - 11693<br>
   
-This makes Queens County NY a relatively safe investment region for real estate for housing market.
+This makes Queens County NY a relatively safe investment region for real estate for housing market.<br>
+
+For modeling, list of all zipcodes is reduced to zipcodes that exhibit return on investment more than 10% for the past three years. Found such 24 Zip Codes, those are: 11434, 11691, 11435, 11104, 11413, 11420, 11414, 11412, 11419, 11433, 11423, 11369, 11694, 11422, 11417, 11427, 11692, 11429, 11411, 11426, 11428, 11693, 11004, 11436.
 
 ### Map of zipcodes
 ![png](./assets/toner_map.png)
@@ -654,17 +656,19 @@ Best investment opportunities
         
 ![png](./assets/output_57_9.png)
     
-All of them looks similar. They all should be a good investment and they are not expected to go under support level one, they are likely to breach resistance two soon if the current trend persists.
+All of them looks similar. They all should be a good investment and they are not expected to go under support level one, they are likely to breach resistance two soon if the current trend persists. Details about support and resistance is both on the presentation and notebook in this repo.<br>
+
+![png](./assets/ss.png)
 
 Run `fig_dash.py` for an interactive dashboard from the location `./model/fog_dash.py` containing forecast for all the zip codes.
 # RECOMMENDATION
 
 Invest in following zip codes:
- - 11429
- - 11428
- - 11427
- - 11423
- - 11417<br>
+- 11369
+- 11429
+- 11420
+- 11428
+- 11426<br>
  
 Stay away from these, they are in a bubble :
 - 11693
@@ -673,6 +677,9 @@ Stay away from these, they are in a bubble :
 Rule of thumb
  - Go southeast part of Queens for good investment opportunity.
  - Some of the house are overvalued, and awaits correction, be careful of those houses.
+ - For maximum return
+   - Sell at the beginning of a year
+   - Buy towards the end of a year
 
 
 # CONCLUSION
@@ -709,16 +716,43 @@ Although modeling process is adequate, there are some caveats.
 │   ├── __init__.py
 │   ├── functions.py                                      # custom functions
 │   └── packages.py                                       # imports used in the notebook
-├── model                                                 # saved models and python obects
+├── model
+│   ├── all_models_output.joblib                          # saved results
 │   ├── fig_dash.py                                       # Dash dashboard
-│   ├── ts.joblib                                         # cleaned and process time series
-│   ├── model.joblib   ## NOT IN REPO
-│   ├── model_compressed.joblib   ## NOT IN REPO
+│   ├── ind_model                                         # saved individual models by zipcode
+│   │   ├── 11004.joblib
+│   │   ├── 11104.joblib
+│   │   ├── 11369.joblib
+│   │   ├── 11411.joblib
+│   │   ├── 11412.joblib
+│   │   ├── 11413.joblib
+│   │   ├── 11414.joblib
+│   │   ├── 11417.joblib
+│   │   ├── 11419.joblib
+│   │   ├── 11420.joblib
+│   │   ├── 11422.joblib
+│   │   ├── 11423.joblib
+│   │   ├── 11426.joblib
+│   │   ├── 11427.joblib
+│   │   ├── 11428.joblib
+│   │   ├── 11429.joblib
+│   │   ├── 11433.joblib
+│   │   ├── 11434.joblib
+│   │   ├── 11435.joblib
+│   │   ├── 11436.joblib
+│   │   ├── 11691.joblib
+│   │   ├── 11692.joblib
+│   │   ├── 11693.joblib
+│   │   └── 11694.joblib
+│   ├── results_upd.joblib
+│   ├── roi.joblib
+│   ├── roi_upd.joblib
+│   ├── ts.joblib                                         # cleaned and processed time series
 │   └── viz.joblib
 ├── presentation.pdf                                      # presentation file
 ├── presentation.pptx                                     # presentation file
 ├── student.ipynb                                         # Main notebook used
-└── student.pdf                                           # pdf version of the notebook
+└── student_55_zipcodes.ipynb                             # additional models
 ```
  Note: scraping notebook is not synced to github for privacy reason. model files exceed github filesize limit, even github LFS.
  
