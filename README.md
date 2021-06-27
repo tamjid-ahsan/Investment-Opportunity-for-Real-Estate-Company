@@ -391,132 +391,10 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
 </table>
 </div>
 
+<br>
 
-
-
-
-    
 ![png](./assets/output_49_1.png)
     
-
-
-
-<div>
-
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>aic</th>
-      <th>bic</th>
-      <th>oob</th>
-      <th>rmse</th>
-      <th>mse</th>
-      <th>r2</th>
-      <th>test_roi</th>
-      <th>pred_roi</th>
-      <th>three_year_projected_mean_roi</th>
-      <th>risk</th>
-      <th>three_year_projected_lower_roi</th>
-      <th>three_year_projected_upper_roi</th>
-    </tr>
-    <tr>
-      <th>ZipCode</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>11429</th>
-      <td>4188.75</td>
-      <td>4216.63</td>
-      <td>74980018.35</td>
-      <td>11209.0</td>
-      <td>10023.0</td>
-      <td>0.894</td>
-      <td>15.43</td>
-      <td>21.44</td>
-      <td>22.23</td>
-      <td>70.71</td>
-      <td>-22.77</td>
-      <td>67.23</td>
-    </tr>
-    <tr>
-      <th>11428</th>
-      <td>4232.73</td>
-      <td>4260.60</td>
-      <td>33049249.59</td>
-      <td>21826.0</td>
-      <td>17787.0</td>
-      <td>0.717</td>
-      <td>12.16</td>
-      <td>32.88</td>
-      <td>34.24</td>
-      <td>70.56</td>
-      <td>-13.05</td>
-      <td>81.53</td>
-    </tr>
-    <tr>
-      <th>11427</th>
-      <td>4193.11</td>
-      <td>4227.96</td>
-      <td>29656141.33</td>
-      <td>32203.0</td>
-      <td>29725.0</td>
-      <td>0.423</td>
-      <td>15.30</td>
-      <td>29.42</td>
-      <td>30.56</td>
-      <td>71.48</td>
-      <td>-17.00</td>
-      <td>78.11</td>
-    </tr>
-    <tr>
-      <th>11423</th>
-      <td>4247.35</td>
-      <td>4271.74</td>
-      <td>17613244.80</td>
-      <td>31539.0</td>
-      <td>28175.0</td>
-      <td>0.525</td>
-      <td>16.57</td>
-      <td>37.91</td>
-      <td>39.55</td>
-      <td>70.86</td>
-      <td>-8.56</td>
-      <td>87.65</td>
-    </tr>
-    <tr>
-      <th>11417</th>
-      <td>4231.28</td>
-      <td>4255.68</td>
-      <td>19098261.43</td>
-      <td>35227.0</td>
-      <td>31025.0</td>
-      <td>0.386</td>
-      <td>12.41</td>
-      <td>17.90</td>
-      <td>18.56</td>
-      <td>69.87</td>
-      <td>-29.79</td>
-      <td>66.92</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
 
 ### Visual
 
@@ -524,124 +402,6 @@ Top five zipcodes based on best 15 (27 percent of all available zipcode) ROI and
 ![static image of report](./assets/static.png)
 
 # INTERPRET
-
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>aic</th>
-      <th>bic</th>
-      <th>oob</th>
-      <th>rmse</th>
-      <th>mse</th>
-      <th>r2</th>
-      <th>test_roi</th>
-      <th>pred_roi</th>
-      <th>three_year_projected_mean_roi</th>
-      <th>risk</th>
-      <th>three_year_projected_lower_roi</th>
-      <th>three_year_projected_upper_roi</th>
-    </tr>
-    <tr>
-      <th>ZipCode</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>11429</th>
-      <td>4188.75</td>
-      <td>4216.63</td>
-      <td>74980018.35</td>
-      <td>11209.0</td>
-      <td>10023.0</td>
-      <td>0.894</td>
-      <td>15.43</td>
-      <td>21.44</td>
-      <td>22.23</td>
-      <td>70.71</td>
-      <td>-22.77</td>
-      <td>67.23</td>
-    </tr>
-    <tr>
-      <th>11428</th>
-      <td>4232.73</td>
-      <td>4260.60</td>
-      <td>33049249.59</td>
-      <td>21826.0</td>
-      <td>17787.0</td>
-      <td>0.717</td>
-      <td>12.16</td>
-      <td>32.88</td>
-      <td>34.24</td>
-      <td>70.56</td>
-      <td>-13.05</td>
-      <td>81.53</td>
-    </tr>
-    <tr>
-      <th>11427</th>
-      <td>4193.11</td>
-      <td>4227.96</td>
-      <td>29656141.33</td>
-      <td>32203.0</td>
-      <td>29725.0</td>
-      <td>0.423</td>
-      <td>15.30</td>
-      <td>29.42</td>
-      <td>30.56</td>
-      <td>71.48</td>
-      <td>-17.00</td>
-      <td>78.11</td>
-    </tr>
-    <tr>
-      <th>11423</th>
-      <td>4247.35</td>
-      <td>4271.74</td>
-      <td>17613244.80</td>
-      <td>31539.0</td>
-      <td>28175.0</td>
-      <td>0.525</td>
-      <td>16.57</td>
-      <td>37.91</td>
-      <td>39.55</td>
-      <td>70.86</td>
-      <td>-8.56</td>
-      <td>87.65</td>
-    </tr>
-    <tr>
-      <th>11417</th>
-      <td>4231.28</td>
-      <td>4255.68</td>
-      <td>19098261.43</td>
-      <td>35227.0</td>
-      <td>31025.0</td>
-      <td>0.386</td>
-      <td>12.41</td>
-      <td>17.90</td>
-      <td>18.56</td>
-      <td>69.87</td>
-      <td>-29.79</td>
-      <td>66.92</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
 <br>
 
 Best investment opportunities
@@ -744,9 +504,9 @@ Although modeling process is adequate, there are some caveats.
 │   │   ├── 11692.joblib
 │   │   ├── 11693.joblib
 │   │   └── 11694.joblib
-│   ├── results_upd.joblib
-│   ├── roi.joblib
-│   ├── roi_upd.joblib
+│   ├── results_upd.joblib                                # updated all_models_output
+│   ├── roi.joblib                                        # ROI information
+│   ├── roi_upd.joblib                                    # updated ROI information
 │   ├── ts.joblib                                         # cleaned and processed time series
 │   └── viz.joblib
 ├── presentation.pdf                                      # presentation file
@@ -754,6 +514,5 @@ Although modeling process is adequate, there are some caveats.
 ├── student.ipynb                                         # Main notebook used
 └── student_55_zipcodes.ipynb                             # additional models
 ```
- Note: scraping notebook is not synced to github for privacy reason. model files exceed github filesize limit, even github LFS.
  
 For additional info contact [me](https://www.linkedin.com/in/tamjidahsan/)  via linkdin.
