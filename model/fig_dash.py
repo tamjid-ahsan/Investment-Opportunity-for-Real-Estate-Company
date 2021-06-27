@@ -14,9 +14,9 @@ print(f'{"+"*30}')
 fig1 = joblib.load('viz.joblib')
 
 
-load = joblib.load('model.joblib')
-results = load['Results']
-
+# load = joblib.load('model.joblib')
+# results = load['Results']
+results = joblib.load('all_models_output.joblib')
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SLATE], meta_tags=[{'name': 'viewport',
                                                                                'content': 'width=device-width, initial-scale=1.0'}])
@@ -43,11 +43,11 @@ app.layout = dbc.Container([
         dbc.Col([
             dcc.Dropdown(id='my-dpdn', className='bg-dark ', multi=False, value='11432',
                          options=[{'label': x, 'value': x}
-                                  for x in results.keys()]
+                                  for x in sorted(results.keys())]
                          ),
             dcc.Graph(id='line-fig', figure={})
         ])
-    )  
+    )
 ])
 
 

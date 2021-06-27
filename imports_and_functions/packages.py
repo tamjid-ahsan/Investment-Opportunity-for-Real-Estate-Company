@@ -2,7 +2,6 @@ import plotly.express as px
 from datetime import datetime
 import seaborn as sns
 import joblib
-# from jupyterthemes import jtplot
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +12,7 @@ import pandas as pd
 pd.set_option('display.max_columns', 0)
 from ipywidgets import interact
 
+# from jupyterthemes import jtplot
 # # OG plot
 # jtplot.reset()
 # # jtplot.style(theme='monokai', context='notebook', ticks='True', grid='False')

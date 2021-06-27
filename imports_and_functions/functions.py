@@ -598,7 +598,7 @@ def prediction_analysis(ts, test, forecast):
     """
     HIGH = test.max()
     LOW = test.min()
-    CLOSE = test.mean()
+    CLOSE = test[-1]
 
     PP = (HIGH + LOW + CLOSE) / 3
     S1 = 2 * PP - HIGH
@@ -748,6 +748,10 @@ def model_loop(ts_df,
     """
     Loops through provided zipcodes as list with grid_search function and 
     stores output using provided train test split.
+    
+    - saves the model as it loops to `./model/ind_model/{zipcode}.joblib`
+    - after looping saves results at `./model/all_models_output.joblib`
+    - after looping saves roi information at `./model/roi.joblib`
 
     Parameters:
     ===========
@@ -840,8 +844,9 @@ def model_loop(ts_df,
         }])
         ROI = ROI.append(roi_df, ignore_index=True)
         print('-' * 90, end='\n')
-    # saving roi model
+    # saving results and ROI
     joblib.dump(RESULTS, f'./model/all_models_output.joblib')
+    joblib.dump(ROI, './model/roi.joblib')
     print('Looping completed.')
     return RESULTS, ROI
 
@@ -870,12 +875,22 @@ def model_report(zipcode_list, results_, show_model_performance=True, show_train
         print('\033[1m \033[5;30;47m' +
               f'{" "*70}Report of {best_zipcode}{" "*70}' + '\033[0m')
         print(f'{"-"*157}')
-        print('\033[1m \033[91m' + 'Model Used:')
-        model = joblib.load(f'./model/ind_model/{best_zipcode}.joblib')
-        model = model[best_zipcode]['model']
-        display(model)
+        print('\033[1m \033[91m' + 'Model Used:'+ '\033[0m')
+       
+
         if show_model_performance:
+            # model = joblib.load(f'./model/ind_model/{best_zipcode}.joblib')
+            # model = model[best_zipcode]['model']
+            mergerd_train_test = results_[best_zipcode]['train'].combine_first(
+                results_[best_zipcode]['test'])
+            order = results_[best_zipcode]['orders']['order']
+            seasonal_order = results_[best_zipcode]['orders']['seasonal_order']
+            
+            model = tsa.SARIMAX(mergerd_train_test, order=order,
+                                seasonal_order=seasonal_order, enforce_invertibility=False).fit()
             # model performance
+            print('order used: ', order)
+            print('seasonal order used: ', seasonal_order)
             print(model.summary())
             model.plot_diagnostics(figsize=(10, 5))
             plt.tight_layout()
@@ -903,10 +918,10 @@ def model_report(zipcode_list, results_, show_model_performance=True, show_train
             print('\033[1m \033[1;33;40m' + 'Insights:'+'\033[1m')
             # train_test_pred_forecast
             fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(15, 5))
-            ax1 = tsa.seasonal_decompose(results_['11432']['test']).trend.plot(
+            ax1 = tsa.seasonal_decompose(results_[best_zipcode]['test']).trend.plot(
                 title='Most recent trend', ax=ax1)
             ax2 = tsa.seasonal_decompose(
-                results_['11432']['test'][-36:]).seasonal.plot(
+                results_[best_zipcode]['test'][-36:]).seasonal.plot(
                     title='Last three year seasonality', ax=ax2)
             plt.show()
             print('\033[1m \033[1;33;40m' +
