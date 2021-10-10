@@ -511,8 +511,8 @@ Although modeling process is adequate, there are some caveats.
 │   └── viz.joblib
 ├── presentation.pdf                                      # presentation file
 ├── presentation.pptx                                     # presentation file
-├── student.ipynb                                         # Main notebook used
-└── student_55_zipcodes.ipynb                             # additional models
+├── analysis.ipynb                                         # Main notebook used
+└── analysis_55_zipcodes.ipynb                             # additional models
 ```
  
 For additional info contact [me](https://www.linkedin.com/in/tamjidahsan/)  via linkdin.
